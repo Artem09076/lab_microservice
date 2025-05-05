@@ -1,0 +1,25 @@
+{
+   "client": {
+      "allowed_origins": [
+         "*"
+      ],
+         "token": {
+            "jwks_public_endpoint": "http://keycloak:8080/realms/sirius/protocol/openid-connect/certs"    }
+   },
+   "http_api": {
+      "key": "my_api_key"
+   },
+   "channel": {
+      "without_namespace": {
+         "allow_subscribe_for_client": true,
+         "allow_subscribe_for_anonymous": true,
+         "allow_publish_for_client": true,
+         "allow_publish_for_anonymous": true,
+         "allow_publish_for_subscriber": true
+      }
+   },
+   "admin": {
+      "secret": "secret",
+      "enabled": true
+   }
+}

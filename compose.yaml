@@ -1,0 +1,87 @@
+services:
+  balancer:
+    image: nginx:mainline-alpine3.21
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:8080:80
+    volumes:
+      - ./web:/var/www/web
+      - ./config/balancer:/etc/nginx/templates
+  
+  websocket:
+    image: centrifugo/centrifugo:v6.1
+    restart: unless-stopped
+    command: centrifugo -c config.json
+    environment:
+      - CENTRIFUGO_ADMIN_PASSWORD=${CENTRIFUGO_ADMIN_PASSWORD}
+    volumes:
+      - ./config/websocket/config.json:/centrifugo/config.json
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+  
+  database:
+    image: postgres:17.4-alpine3.21
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-d", "postgres" ]
+      interval: 1s
+      retries: 20
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - database-data:/var/lib/postgresql/data
+
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    restart: unless-stopped
+    command: start-dev
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://auth-database:5432/${AUTH_DB_NAME}
+      - KC_DB_USERNAME=${AUTH_DB_USER}
+      - KC_DB_PASSWORD=${AUTH_DB_PASS}
+
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_PORT=8090
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+
+      - KC_LOG_LEVEL=info
+      - KC_METRICS_ENABLED=false
+      - KC_HEALTH_ENABLED=false
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${ADMIN_LOGIN}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    depends_on:
+      auth-database:
+        condition: service_healthy
+    ports:
+      - 8090:8080
+
+
+  auth-database:
+    image: postgres:17.4-alpine3.21
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-d", "postgres" ]
+      interval: 1s
+      retries: 20
+    environment:
+      - POSTGRES_USER=${AUTH_DB_USER}
+      - POSTGRES_PASSWORD=${AUTH_DB_PASS}
+      - POSTGRES_DB=${AUTH_DB_NAME}
+    ports:
+      - 127.0.0.1:5442:5432
+    volumes:
+      - auth-database-data:/var/lib/postgresql/data
+
+
+volumes:
+  database-data:
+  auth-database-data:
