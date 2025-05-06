@@ -21,7 +21,7 @@ services:
         soft: 65535
         hard: 65535
   
-  database:
+  db:
     image: postgres:17.4-alpine3.21
     restart: unless-stopped
     healthcheck:
@@ -80,7 +80,34 @@ services:
       - 127.0.0.1:5442:5432
     volumes:
       - auth-database-data:/var/lib/postgresql/data
-
+  
+  migrations:
+    image: ghcr.io/kukymbr/goose-docker:3.24.2
+    restart: no
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - GOOSE_DRIVER=postgres
+      - GOOSE_DBSTRING=host=${DB_HOST} port=${DB_PORT} user=${DB_USER} password=${DB_PASS} dbname=${DB_NAME}
+      - GOOSE_VERBOSE=true
+      - GOOSE_COMMAND=${GOOSE_COMMAND}
+      - GOOSE_COMMAND_ARG=${GOOSE_COMMAND_ARG}
+    volumes:
+      - ./migrations:/migrations
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASS}@database:5432/${DB_NAME}
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CLIENT=${KEYCLOAK_CLIENT}
+      - KEYCLOAK_SECRET=${KEYCLOAK_SECRET}
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
 
 volumes:
   database-data:

@@ -16,6 +16,14 @@
          "allow_publish_for_client": true,
          "allow_publish_for_anonymous": true,
          "allow_publish_for_subscriber": true
+      },
+      "proxy": {
+         "publish": {
+            "endpoint": "grpc://server:10000"
+         },
+         "subscribe": {
+		      "endpoint": "grpc://server:10000"
+	      }
       }
    },
    "admin": {

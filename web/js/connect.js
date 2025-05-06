@@ -115,3 +115,51 @@ document.getElementById("btnLogout").addEventListener("click", () => {
 		console.error("no refresh token");
 	}
 });
+
+document.getElementById("btnSubscribe").addEventListener("click", () => {
+    const channelName = document.getElementById("channel").value;
+    
+    if (!channelName) {
+        console.error("Channel name is required");
+        return;
+    }
+
+    const sub = client.subscribe(channelName, {
+        getToken: getToken
+    });
+
+    sub.on("publication", function(ctx) {
+        const output = document.getElementById("output");
+        output.innerHTML += `<p>New message: ${JSON.stringify(ctx.data)}</p>`;
+    });
+
+    sub.on("subscribing", function(ctx) {
+        console.log(`Subscribing to ${channelName}`);
+    });
+
+    sub.on("subscribed", function(ctx) {
+        console.log(`Subscribed to ${channelName}`);
+    });
+
+    sub.on("error", function(ctx) {
+        console.error(`Subscription error: ${ctx.error}`);
+    });
+});
+
+document.getElementById("btnSend").addEventListener("click", () => {
+    const channelName = document.getElementById("channel").value;
+    const messageText = document.getElementById("message").value;
+    
+    if (!channelName || !messageText) {
+        console.error("Channel and message are required");
+        return;
+    }
+
+    client.publish(channelName, {
+        text: messageText
+    }).then(function(res) {
+        console.log("Message published", res);
+    }, function(err) {
+        console.error("Publish error", err);
+    });
+});

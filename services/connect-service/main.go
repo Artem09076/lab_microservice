@@ -6,28 +6,31 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"s0709-22/internal/proxyproto"
-	"s0709-22/services/connect-service/internal/service"
 
+	"github.com/Artem09076/lab_microservice.git/internal/proxyproto"
+	"github.com/Artem09076/lab_microservice.git/services/connect-service/internal/config"
+	"github.com/Artem09076/lab_microservice.git/services/connect-service/internal/service"
 	"google.golang.org/grpc"
 )
 
-const (
-	// ConnString ...
-	ConnString = "postgres://appuser:apppass@127.0.0.1:5432/userdb?sslmode=disable"
-)
-
-func main() {
-	listener, err := net.Listen("tcp4", "127.0.0.1:10000")
+func serve() error {
+	conf, err := config.Load()
 	if err != nil {
-		log.Fatalln(err)
+		return err
+	}
+	listener, err := net.Listen("tcp4", ":"+conf.Port)
+	if err != nil {
+		return err
 	}
 
 	errChan := make(chan error)
 
 	srv := grpc.NewServer()
 
-	svc, err := service.New(ConnString)
+	svc, err := service.New(conf)
+	if err != nil {
+		return err
+	}
 
 	proxyproto.RegisterCentrifugoProxyServer(srv, svc)
 
@@ -55,9 +58,16 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		log.Fatalln(err)
+		return err
 	case <-exitCtx.Done():
 		log.Println("exit")
 	}
+	return nil
+}
 
+func main() {
+	log.Println("serve start")
+	if err := serve(); err != nil {
+		log.Fatalln(err)
+	}
 }
