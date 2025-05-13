@@ -6,7 +6,7 @@ tasks:
 
   proxyproto:
     cmds:
-      - protoc -I ./contracts proxyproto.proto --go_out=./internal/proxyproto --go-grpc_out=./internal/proxyproto
+      - protoc -I ./contracts *.proto --go_out=./internal/proxyproto --go-grpc_out=./internal/proxyproto
       - task: tidy
 
   sqlgen:

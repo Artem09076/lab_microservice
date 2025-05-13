@@ -18,7 +18,7 @@ func serve() error {
 	if err != nil {
 		return err
 	}
-	listener, err := net.Listen("tcp4", ":"+conf.Port)
+	listener, err := net.Listen("tcp", ":"+conf.Port)
 	if err != nil {
 		return err
 	}

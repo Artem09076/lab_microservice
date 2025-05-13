@@ -1,9 +1,8 @@
 {
    "client": {
-      "allowed_origins": [
-         "*"
-      ],
+      "allowed_origins": ["*"],
          "token": {
+            "user_id_claim": "sub",
             "jwks_public_endpoint": "http://keycloak:8080/realms/sirius/protocol/openid-connect/certs"    }
    },
    "http_api": {
@@ -15,7 +14,9 @@
          "allow_subscribe_for_anonymous": true,
          "allow_publish_for_client": true,
          "allow_publish_for_anonymous": true,
-         "allow_publish_for_subscriber": true
+         "allow_publish_for_subscriber": true,
+         "subscribe_proxy_enabled": true,
+         "publish_proxy_enabled": true
       },
       "proxy": {
          "publish": {

@@ -99,6 +99,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - 127.0.0.1:10000:10000
     environment:
       - DATABASE_URL=postgres://${DB_USER}:${DB_PASS}@database:5432/${DB_NAME}
       - KEYCLOAK_URL=http://keycloak:8080

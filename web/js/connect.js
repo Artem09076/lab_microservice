@@ -67,6 +67,7 @@ client.on("disconnected", () => {
 
 document.getElementById("btnLogin").addEventListener("click", () => {
 	if (connected) {
+		
 		return;
 	}
 
@@ -82,6 +83,7 @@ document.getElementById("btnLogin").addEventListener("click", () => {
 
 document.getElementById("btnLogout").addEventListener("click", () => {
 	if (!connected) {
+		console.error("Not connected to Centrifugo")
 		return;
 	}
 
@@ -117,18 +119,25 @@ document.getElementById("btnLogout").addEventListener("click", () => {
 });
 
 document.getElementById("btnSubscribe").addEventListener("click", () => {
+	if (!connected) {
+        console.error("Not connected to Centrifugo");
+        return;
+    }
+
     const channelName = document.getElementById("channel").value;
-    
+    console.log("Subscribing to channel:", channelName);
     if (!channelName) {
         console.error("Channel name is required");
         return;
     }
-
-    const sub = client.subscribe(channelName, {
-        getToken: getToken
-    });
+	console.log(channelName)
+    const sub = client.newSubscription(channelName, {
+		getToken: getToken
+	});
+	console.log(sub)
 
     sub.on("publication", function(ctx) {
+		console.log("New publication:", ctx.data);
         const output = document.getElementById("output");
         output.innerHTML += `<p>New message: ${JSON.stringify(ctx.data)}</p>`;
     });
@@ -144,6 +153,7 @@ document.getElementById("btnSubscribe").addEventListener("click", () => {
     sub.on("error", function(ctx) {
         console.error(`Subscription error: ${ctx.error}`);
     });
+	sub.subscribe()
 });
 
 document.getElementById("btnSend").addEventListener("click", () => {
